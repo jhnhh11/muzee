@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUZEE</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>MUZEE</h1>
+        </header>
+
+        <section class="search-section">
+            <h2>음악 취향 입력</h2>
+            <div class="preference-inputs">
+                <div class="input-group">
+                    <label for="favorite-artist">좋아하는 아티스트:</label>
+                    <input type="text" id="favorite-artist" placeholder="아티스트 이름 입력">
+                </div>
+                <div class="input-group">
+                    <label for="favorite-genre">선호하는 장르:</label>
+                    <select id="favorite-genre">
+                        <option value="">장르 선택</option>
+                        <option value="pop">팝</option>
+                        <option value="rock">록</option>
+                        <option value="hiphop">힙합</option>
+                        <option value="jazz">재즈</option>
+                        <option value="classical">클래식</option>
+                        <option value="kpop">K-POP</option>
+                        <option value="electronic">일렉트로닉</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="mood">현재 기분:</label>
+                    <select id="mood">
+                        <option value="">기분 선택</option>
+                        <option value="happy">행복함</option>
+                        <option value="sad">슬픔</option>
+                        <option value="energetic">활기찬</option>
+                        <option value="calm">차분함</option>
+                        <option value="focus">집중</option>
+                    </select>
+                </div>
+                <button id="recommend-btn">추천 받기</button>
+            </div>
+        </section>
+
+        <section class="stats-section">
+            <h2>조회수 분포</h2>
+            <div id="stats-container">
+                <div class="chart-container">
+                    <canvas id="stats-chart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="results-section">
+            <h2>추천 플레이리스트</h2>
+            <div id="playlist-container"></div>
+        </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

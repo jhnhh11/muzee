@@ -1,0 +1,521 @@
+/* 기본 설정 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+body {
+  background: linear-gradient(to bottom, #fdfbfb, #ebedee);
+  color: #444;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px;
+}
+
+/* 헤더 */
+header {
+  text-align: center;
+  margin-bottom: 50px;
+  padding: 30px 20px;
+  background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+  color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+header h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.main-nav {
+  margin: 15px 0;
+}
+
+.main-nav ul {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1.1rem;
+  padding: 8px 16px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.nav-link.active {
+  background: rgba(255, 255, 255, 0.3);
+  font-weight: 700;
+}
+
+.auth-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.auth-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-button {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 8px 16px;
+  margin-top: 0;
+}
+
+.auth-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 섹션 */
+section {
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 30px;
+  margin-bottom: 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* 홈 페이지 레이아웃 */
+.home-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.home-left, .home-right {
+  min-width: 300px;
+}
+
+.home-left .search-section,
+.home-right .stats-section {
+  height: 100%;
+}
+
+.chart-container {
+  position: relative;
+  height: 400px;
+  width: 100%;
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+section h2 {
+  margin-bottom: 20px;
+  color: #555;
+  border-bottom: 2px solid #f3f3f3;
+  padding-bottom: 10px;
+  font-size: 1.6rem;
+}
+
+/* 입력 UI */
+.preference-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+label {
+  font-weight: 500;
+  color: #555;
+}
+
+input, select {
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 20px;
+  font-size: 1rem;
+  background-color: #fdfdfd;
+  color: #555;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23999' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 18px;
+}
+
+select:focus {
+  border-color: #a6c1ee;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(166, 193, 238, 0.3);
+}
+
+
+/* 버튼 */
+button {
+  background: linear-gradient(135deg, #c1dfc4, #deecdd);
+  color: #333;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  margin-top: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+/* 플레이리스트 섹션 */
+.playlist-section {
+  margin-bottom: 40px;
+}
+
+.playlist-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.playlist-controls .input-group {
+  flex: 1;
+  min-width: 250px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.playlist-controls input {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.playlist-selector {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex: 1;
+  min-width: 250px;
+}
+
+.playlist-selector select {
+  flex: 1;
+}
+
+#my-playlist-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+  margin-top: 30px;
+}
+
+.playlist-header {
+  grid-column: 1 / -1;
+  margin-bottom: 20px;
+}
+
+.playlist-title-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #f3f3f3;
+  padding-bottom: 10px;
+}
+
+.playlist-header h3 {
+  font-size: 1.4rem;
+  color: #444;
+  margin: 0;
+}
+
+.delete-playlist-btn {
+  padding: 8px 15px;
+  font-size: 0.9rem;
+  background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+  color: white;
+  margin-top: 0;
+}
+
+.delete-playlist-btn:hover {
+  background: linear-gradient(135deg, #ff8a8e, #f9c0b4);
+}
+
+/* 추천 결과 */
+#playlist-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+  margin-top: 30px;
+}
+
+.playlist-item {
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: #fff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.playlist-item:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+.video-container {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 */
+  height: 0;
+  overflow: hidden;
+}
+
+.video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.video-info {
+  padding: 16px;
+}
+
+.video-info h3 {
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.video-info p {
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.video-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.add-to-playlist-btn, .remove-from-playlist-btn {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  background: linear-gradient(135deg, #a6c1ee, #fbc2eb);
+  color: #fff;
+}
+
+/* 모달 스타일 */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  overflow: auto;
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 30px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+/* 플레이리스트 선택기 모달 스타일 */
+.playlist-selector-content {
+  max-width: 450px;
+}
+
+.playlist-selector-content h3 {
+  margin-bottom: 15px;
+  color: #444;
+}
+
+.playlist-selector-list {
+  margin-top: 20px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.playlist-selector-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.2s;
+}
+
+.playlist-selector-item:hover {
+  background-color: #f9f9f9;
+}
+
+.playlist-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.playlist-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.playlist-count {
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 3px;
+}
+
+.select-playlist-btn {
+  padding: 8px 15px;
+  font-size: 0.9rem;
+  margin-top: 0;
+  background: linear-gradient(135deg, #a6c1ee, #fbc2eb);
+}
+
+.close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #aaa;
+  cursor: pointer;
+}
+
+.close:hover {
+  color: #555;
+}
+
+.auth-tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.auth-tab {
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  margin-right: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #888;
+  box-shadow: none;
+}
+
+.auth-tab.active {
+  color: #a6c1ee;
+  border-bottom: 2px solid #a6c1ee;
+}
+
+.auth-form {
+  display: none;
+}
+
+.auth-form.active {
+  display: block;
+}
+
+.auth-form h3 {
+  margin-bottom: 20px;
+  color: #444;
+}
+
+.error-message {
+  color: #e74c3c;
+  margin-top: 15px;
+  font-size: 0.9rem;
+}
+
+.page {
+  display: none;
+}
+
+.page.active {
+  display: block;
+}
+
+.login-required-message {
+  text-align: center;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.login-required-message p {
+  margin-bottom: 15px;
+  color: #666;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  #playlist-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .preference-inputs {
+    gap: 15px;
+  }
+
+  header h1 {
+    font-size: 2.2rem;
+  }
+
+  section {
+    padding: 20px;
+  }
+  
+  .auth-container {
+    position: static;
+    margin-top: 15px;
+    justify-content: center;
+  }
+
+  .home-layout {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUZEE</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>MUZEE</h1>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="#" class="nav-link active" data-page="home">홈</a></li>
+                    <li><a href="#" class="nav-link" data-page="playlists">내 플레이리스트</a></li>
+                </ul>
+            </nav>
+            <div class="auth-container">
+                <div id="auth-status" class="auth-status">
+                    <span id="user-info">로그인이 필요합니다</span>
+                    <button id="auth-button" class="auth-button">로그인</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 로그인/회원가입 모달 -->
+        <div id="auth-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login">로그인</button>
+                    <button class="auth-tab" data-tab="register">회원가입</button>
+                </div>
+                
+                <div id="login-form" class="auth-form active">
+                    <h3>로그인</h3>
+                    <div class="input-group">
+                        <label for="login-username">사용자 이름:</label>
+                        <input type="text" id="login-username" placeholder="사용자 이름 입력">
+                    </div>
+                    <div class="input-group">
+                        <label for="login-password">비밀번호:</label>
+                        <input type="password" id="login-password" placeholder="비밀번호 입력">
+                    </div>
+                    <button id="login-btn">로그인</button>
+                    <p id="login-error" class="error-message"></p>
+                </div>
+                
+                <div id="register-form" class="auth-form">
+                    <h3>회원가입</h3>
+                    <div class="input-group">
+                        <label for="register-username">사용자 이름:</label>
+                        <input type="text" id="register-username" placeholder="사용자 이름 입력">
+                    </div>
+                    <div class="input-group">
+                        <label for="register-password">비밀번호:</label>
+                        <input type="password" id="register-password" placeholder="비밀번호 입력">
+                    </div>
+                    <div class="input-group">
+                        <label for="register-password-confirm">비밀번호 확인:</label>
+                        <input type="password" id="register-password-confirm" placeholder="비밀번호 다시 입력">
+                    </div>
+                    <button id="register-btn">회원가입</button>
+                    <p id="register-error" class="error-message"></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="home-page" class="page active">
+            <div class="home-layout">
+                <div class="home-left">
+                    <section class="search-section">
+                        <h2>음악 취향 입력</h2>
+                        <div class="preference-inputs">
+                            <div class="input-group">
+                                <label for="favorite-artist">좋아하는 아티스트:</label>
+                                <input type="text" id="favorite-artist" placeholder="아티스트 이름 입력">
+                            </div>
+                            <div class="input-group">
+                                <label for="favorite-genre">선호하는 장르:</label>
+                                <select id="favorite-genre">
+                                    <option value="">장르 선택</option>
+                                    <option value="pop">팝</option>
+                                    <option value="rock">록</option>
+                                    <option value="hiphop">힙합</option>
+                                    <option value="jazz">재즈</option>
+                                    <option value="classical">클래식</option>
+                                    <option value="kpop">K-POP</option>
+                                    <option value="electronic">일렉트로닉</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="mood">현재 기분:</label>
+                                <select id="mood">
+                                    <option value="">기분 선택</option>
+                                    <option value="happy">행복함</option>
+                                    <option value="sad">슬픔</option>
+                                    <option value="energetic">활기찬</option>
+                                    <option value="calm">차분함</option>
+                                    <option value="focus">집중</option>
+                                </select>
+                            </div>
+                            <button id="recommend-btn">추천 받기</button>
+                        </div>
+                    </section>
+                </div>
+                
+                <div class="home-right">
+                    <section class="stats-section">
+                        <h2>조회수 분포</h2>
+                        <div id="stats-container">
+                            <div class="chart-container">
+                                <canvas id="stats-chart" width="400" height="400"></canvas>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <section class="results-section">
+                <h2>추천 플레이리스트</h2>
+                <div id="playlist-container"></div>
+            </section>
+        </div>
+
+        <div id="playlists-page" class="page">
+            <section class="playlist-section" id="playlist-section">
+                <h2>내 플레이리스트</h2>
+                <div class="login-required-message" id="playlist-login-message">
+                    <p>플레이리스트 기능을 사용하려면 로그인이 필요합니다.</p>
+                    <button id="playlist-login-btn" class="auth-button">로그인하기</button>
+                </div>
+                <div class="playlist-controls" id="playlist-controls" style="display: none;">
+                    <div class="input-group">
+                        <input type="text" id="playlist-name" placeholder="새 플레이리스트 이름">
+                        <button id="create-playlist-btn">플레이리스트 생성</button>
+                    </div>
+                    <div class="playlist-selector">
+                        <select id="playlist-select">
+                            <option value="">플레이리스트 선택</option>
+                        </select>
+                        <button id="view-playlist-btn">보기</button>
+                    </div>
+                </div>
+                <div id="my-playlist-container"></div>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

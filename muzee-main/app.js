@@ -208,10 +208,10 @@ function displayResults(videos) {
                         <p class="view-count">조회수: ${video.formattedViewCount}회</p>
                         <div class="video-actions">
                             <button class="like-btn ${likeActive}" data-video='${JSON.stringify(video)}'>
-                                👍 좋아요 <span class="like-count">${reactionData.likes}</span>
+                                👍 <span class="like-count">${reactionData.likes}</span>
                             </button>
                             <button class="dislike-btn ${dislikeActive}" data-video='${JSON.stringify(video)}'>
-                                👎 싫어요 <span class="dislike-count">${reactionData.dislikes}</span>
+                                👎 <span class="dislike-count">${reactionData.dislikes}</span>
                             </button>
                             <button class="add-to-playlist-btn" data-video='${JSON.stringify(video).replace(/'/g, "&#39;")}'>
                                 플레이리스트에 추가

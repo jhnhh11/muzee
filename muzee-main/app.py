@@ -9,7 +9,7 @@ import json
 app = Flask(__name__)
 
 # YouTube API 키
-API_KEY = 'AIzaSyAWIkZsAAP_iwVss9AMo-roR-bMJFY1baQ'
+API_KEY = 'AIzaSyDr2o46a-5qhYDle7iHhQGcz8mcBzmVfTI'
 
 # YouTube API 클라이언트 생성
 def get_youtube_client():

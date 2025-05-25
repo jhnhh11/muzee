@@ -9,7 +9,7 @@ from functools import wraps
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
-API_KEY = 'AIzaSyAWIkZsAAP_iwVss9AMo-roR-bMJFY1baQ'
+API_KEY = 'AIzaSyDr2o46a-5qhYDle7iHhQGcz8mcBzmVfTI'
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'muzee.db')
 
 def init_db():

@@ -187,11 +187,12 @@ function displayResults(videos) {
         return;
     }
 
-    videos.forEach(video => {
+    // 최대 9개까지만 보여주기!
+    videos.slice(0, 9).forEach(video => {
         const videoElement = document.createElement('div');
         videoElement.className = 'playlist-item';
 
-        // 좋아요/싫어요 정보 fetch 후 표시
+        // 이하 기존 코드 그대로
         fetch(`/api/video/${video.id}/reaction`)
             .then(res => res.json())
             .then(reactionData => {
@@ -233,6 +234,7 @@ function displayResults(videos) {
         playlistContainer.appendChild(videoElement);
     });
 }
+
 
 async function handleReaction(video, reaction, cancel) {
     const response = await fetch('/api/video/reaction', {

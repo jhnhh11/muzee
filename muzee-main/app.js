@@ -33,6 +33,11 @@ const navLinks = document.querySelectorAll('.nav-link');
 const homePage = document.getElementById('home-page');
 const playlistsPage = document.getElementById('playlists-page');
 
+// 좋아요/싫어요 목록/정렬 버튼 DOM
+const likedVideosBtn = document.getElementById('liked-videos-btn');
+const dislikedVideosBtn = document.getElementById('disliked-videos-btn');
+const sortLikesBtn = document.getElementById('sort-likes-btn');
+
 // 차트 객체
 let viewsChart = null;
 
@@ -46,7 +51,11 @@ let currentUser = null;
 // 페이지 로드 시 실행
 document.addEventListener('DOMContentLoaded', function() {
     // 추천 버튼 클릭 이벤트
-    recommendBtn.addEventListener('click', getRecommendations);
+    recommendBtn.addEventListener('click', () => getRecommendations(false));
+
+    likedVideosBtn.addEventListener('click', () => loadReactionVideos('like'));
+    dislikedVideosBtn.addEventListener('click', () => loadReactionVideos('dislike'));
+    sortLikesBtn.addEventListener('click', () => getRecommendations(true));
     
     // 플레이리스트 관련 이벤트
     createPlaylistBtn.addEventListener('click', createPlaylist);
@@ -132,49 +141,36 @@ function createEmptyChart() {
 }
 
 // 추천 받기
-async function getRecommendations() {
+async function getRecommendations(sortByLikes = false) {
     const artist = artistInput.value;
     const genre = genreSelect.value;
     const mood = moodSelect.value;
-    
+
     if (!artist && !genre && !mood) {
         alert('최소한 하나의 선호도를 입력해주세요.');
         return;
     }
-    
-    // 로딩 표시
+
     playlistContainer.innerHTML = '<p>음악을 검색 중입니다...</p>';
-    
+
     try {
-        // 파이썬 서버에 요청
         const response = await fetch('/api/recommendations', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                artist: artist,
-                genre: genre,
-                mood: mood
-            })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({artist, genre, mood, sortByLikes})
         });
-        
+
         const data = await response.json();
-        
+
         if (response.ok) {
             displayResults(data.videos);
             updateStatsChart(data.videos);
-            
-            // 콘솔에 결과 출력 (디버깅용)
-            console.log('추천 결과:', data.videos);
         } else {
             throw new Error(data.error || '알 수 없는 오류가 발생했습니다.');
         }
     } catch (error) {
         console.error('추천 검색 중 오류 발생:', error);
         playlistContainer.innerHTML = `<p>오류가 발생했습니다: ${error.message}</p>`;
-        
-        // 오류 발생 시 YouTube API 키 문제일 가능성이 높으므로 안내 메시지 추가
         if (error.message.includes('API')) {
             playlistContainer.innerHTML += `<p>YouTube API 키를 확인해주세요. API 키가 유효하지 않거나 할당량이 초과되었을 수 있습니다.</p>`;
         }
@@ -182,49 +178,87 @@ async function getRecommendations() {
 }
 
 // 검색 결과 표시
+// 좋아요/싫어요/플레이리스트 버튼 포함해서 결과 출력
 function displayResults(videos) {
     playlistContainer.innerHTML = '';
-    
+
     if (videos.length === 0) {
         playlistContainer.innerHTML = '<p>검색 결과가 없습니다. 다른 선호도를 입력해보세요.</p>';
         return;
     }
-    
+
     videos.forEach(video => {
         const videoElement = document.createElement('div');
         videoElement.className = 'playlist-item';
-        
-        // 실제 YouTube 임베드 사용
-        videoElement.innerHTML = `
-            <div class="video-container">
-                <iframe src="https://www.youtube.com/embed/${video.id}" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen>
-                </iframe>
-            </div>
-            <div class="video-info">
-                <h3>${video.title}</h3>
-                <p class="channel-name">${video.channelTitle}</p>
-                <p class="view-count">조회수: ${video.formattedViewCount}회</p>
-                <div class="video-actions">
-                    <button class="add-to-playlist-btn" data-video='${JSON.stringify(video).replace(/'/g, "&#39;")}'>
-                        플레이리스트에 추가
-                    </button>
-                </div>
-            </div>
-        `;
-        
+
+        // 좋아요/싫어요 정보 fetch 후 표시
+        fetch(`/api/video/${video.id}/reaction`)
+            .then(res => res.json())
+            .then(reactionData => {
+                let likeActive = reactionData.user_reaction === "like" ? "active-btn" : "";
+                let dislikeActive = reactionData.user_reaction === "dislike" ? "active-btn" : "";
+                videoElement.innerHTML = `
+                    <div class="video-container">
+                        <iframe src="https://www.youtube.com/embed/${video.id}" allowfullscreen></iframe>
+                    </div>
+                    <div class="video-info">
+                        <h3>${video.title}</h3>
+                        <p class="channel-name">${video.channelTitle}</p>
+                        <p class="view-count">조회수: ${video.formattedViewCount}회</p>
+                        <div class="video-actions">
+                            <button class="like-btn ${likeActive}" data-video='${JSON.stringify(video)}'>
+                                👍 좋아요 <span class="like-count">${reactionData.likes}</span>
+                            </button>
+                            <button class="dislike-btn ${dislikeActive}" data-video='${JSON.stringify(video)}'>
+                                👎 싫어요 <span class="dislike-count">${reactionData.dislikes}</span>
+                            </button>
+                            <button class="add-to-playlist-btn" data-video='${JSON.stringify(video).replace(/'/g, "&#39;")}'>
+                                플레이리스트에 추가
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                videoElement.querySelector('.like-btn').onclick = function() {
+                    handleReaction(video, "like", reactionData.user_reaction === "like");
+                };
+                videoElement.querySelector('.dislike-btn').onclick = function() {
+                    handleReaction(video, "dislike", reactionData.user_reaction === "dislike");
+                };
+                videoElement.querySelector('.add-to-playlist-btn').onclick = function() {
+                    showPlaylistSelector(video);
+                };
+            });
+
         playlistContainer.appendChild(videoElement);
     });
-    
-    // 플레이리스트 추가 버튼에 이벤트 리스너 추가
-    document.querySelectorAll('.add-to-playlist-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const videoData = JSON.parse(this.getAttribute('data-video'));
-            showPlaylistSelector(videoData);
-        });
+}
+
+async function handleReaction(video, reaction, cancel) {
+    const response = await fetch('/api/video/reaction', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            video_id: video.id,
+            title: video.title,
+            channelTitle: video.channelTitle,
+            thumbnail: video.thumbnail,
+            reaction,
+            cancel
+        })
     });
+    const result = await response.json();
+    if (response.ok) {
+        getRecommendations(); // 다시 불러오기(카운트 및 상태 반영)
+    } else {
+        alert(result.error);
+    }
+}
+
+async function loadReactionVideos(reaction) {
+    const response = await fetch(`/api/user/videos/${reaction}`);
+    const data = await response.json();
+    displayResults(data.videos);
 }
 
 // 통계 차트 업데이트

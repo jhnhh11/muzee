@@ -24,6 +24,13 @@
             </div>
         </header>
 
+        <!-- 좋아요/싫어요/정렬 버튼 -->
+        <div class="like-dislike-bar">
+            <button id="liked-videos-btn">❤️ 좋아요 누른 목록</button>
+            <button id="disliked-videos-btn">💔 싫어요 누른 목록</button>
+            <button id="sort-likes-btn">👍 좋아요 많은 순 정렬</button>
+        </div>
+
         <!-- 로그인/회원가입 모달 -->
         <div id="auth-modal" class="modal">
             <div class="modal-content">
@@ -32,7 +39,6 @@
                     <button class="auth-tab active" data-tab="login">로그인</button>
                     <button class="auth-tab" data-tab="register">회원가입</button>
                 </div>
-                
                 <div id="login-form" class="auth-form active">
                     <h3>로그인</h3>
                     <div class="input-group">
@@ -46,7 +52,6 @@
                     <button id="login-btn">로그인</button>
                     <p id="login-error" class="error-message"></p>
                 </div>
-                
                 <div id="register-form" class="auth-form">
                     <h3>회원가입</h3>
                     <div class="input-group">
@@ -105,7 +110,6 @@
                         </div>
                     </section>
                 </div>
-                
                 <div class="home-right">
                     <section class="stats-section">
                         <h2>조회수 분포</h2>
@@ -117,7 +121,6 @@
                     </section>
                 </div>
             </div>
-
             <section class="results-section">
                 <h2>추천 플레이리스트</h2>
                 <div id="playlist-container"></div>

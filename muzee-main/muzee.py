@@ -2,26 +2,20 @@ import os
 import json
 import requests
 import sqlite3
-import uuid
 import hashlib
-from flask import Flask, render_template, request, jsonify, send_from_directory, session, redirect, url_for
+from flask import Flask, request, jsonify, send_from_directory, session
 from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)  # 세션을 위한 비밀 키
+app.secret_key = os.urandom(24)
 
-# YouTube API 키
 API_KEY = 'AIzaSyAWIkZsAAP_iwVss9AMo-roR-bMJFY1baQ'
-
-# 데이터베이스 설정
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'muzee.db')
 
-# 데이터베이스 초기화
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
-    # 사용자 테이블 생성
+
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,8 +24,7 @@ def init_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     ''')
-    
-    # 플레이리스트 테이블 생성
+
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS playlists (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,8 +34,7 @@ def init_db():
         FOREIGN KEY (user_id) REFERENCES users (id)
     )
     ''')
-    
-    # 플레이리스트 비디오 테이블 생성
+
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS playlist_videos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -56,14 +48,27 @@ def init_db():
         FOREIGN KEY (playlist_id) REFERENCES playlists (id)
     )
     ''')
-    
+
+    # 좋아요/싫어요 반응 테이블
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS video_reactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        video_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        channel_title TEXT NOT NULL,
+        thumbnail TEXT NOT NULL,
+        reaction TEXT CHECK(reaction IN ('like', 'dislike')),
+        UNIQUE(user_id, video_id),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+    ''')
+
     conn.commit()
     conn.close()
 
-# 데이터베이스 초기화 실행
 init_db()
 
-# 로그인 필요 데코레이터
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -72,8 +77,6 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-
-# 현재 디렉토리 경로
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 @app.route('/')
@@ -90,10 +93,11 @@ def get_recommendations():
     artist = data.get('artist', '')
     genre = data.get('genre', '')
     mood = data.get('mood', '')
-    
+    sort_by_likes = data.get('sortByLikes', False)
+
     if not any([artist, genre, mood]):
         return jsonify({'error': '최소한 하나의 선호도를 입력해주세요.'}), 400
-    
+
     try:
         # 검색어 생성
         search_query = ''
@@ -103,7 +107,16 @@ def get_recommendations():
             search_query += f"{genre} music "
         if mood:
             search_query += f"{mood} music"
-        
+
+        # 싫어요 누른 영상 제외
+        disliked_ids = []
+        if 'user_id' in session:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute('SELECT video_id FROM video_reactions WHERE user_id=? AND reaction="dislike"', (session['user_id'],))
+            disliked_ids = [row[0] for row in cursor.fetchall()]
+            conn.close()
+
         # YouTube API 검색 요청
         search_url = "https://www.googleapis.com/youtube/v3/search"
         search_params = {
@@ -114,95 +127,152 @@ def get_recommendations():
             'videoCategoryId': '10',  # 음악 카테고리
             'maxResults': 10
         }
-        
+
         search_response = requests.get(search_url, params=search_params)
-        # 응답 상태 확인 및 디버깅
         if search_response.status_code != 200:
             print(f"API 오류: {search_response.status_code}, 응답: {search_response.text}")
             return jsonify({'error': f'YouTube API 오류: {search_response.status_code}'}), 500
         search_data = search_response.json()
-        
+
         if 'items' not in search_data or not search_data['items']:
-            return jsonify({'error': '검색 결과가 없습니다.'}), 404
-        
+            return jsonify({'videos': []})
+
         # 비디오 ID 추출
         video_ids = [item['id']['videoId'] for item in search_data['items']]
-        
+        # 싫어요 누른 영상 제외
+        filtered_video_ids = [vid for vid in video_ids if vid not in disliked_ids]
+        if not filtered_video_ids:
+            return jsonify({'videos': []})
+
         # 비디오 상세 정보 요청 (조회수 포함)
         videos_url = "https://www.googleapis.com/youtube/v3/videos"
         videos_params = {
             'key': API_KEY,
-            'id': ','.join(video_ids),
+            'id': ','.join(filtered_video_ids),
             'part': 'snippet,statistics'
         }
-        
+
         videos_response = requests.get(videos_url, params=videos_params)
-        # 응답 상태 확인 및 디버깅
         if videos_response.status_code != 200:
             print(f"API 오류: {videos_response.status_code}, 응답: {videos_response.text}")
             return jsonify({'error': f'YouTube API 오류: {videos_response.status_code}'}), 500
         videos_data = videos_response.json()
-        
+
         if 'items' not in videos_data or not videos_data['items']:
-            return jsonify({'error': '비디오 정보를 가져올 수 없습니다.'}), 404
-        
-        # 조회수에 따라 정렬
-        videos = videos_data['items']
-        videos.sort(key=lambda x: int(x['statistics'].get('viewCount', 0)), reverse=True)
-        
-        # 필요한 정보만 추출
-        results = []
-        for video in videos:
+            return jsonify({'videos': []})
+
+        videos = []
+        for video in videos_data['items']:
             view_count = int(video['statistics'].get('viewCount', 0))
-            formatted_view_count = f"{view_count:,}"
-            
-            results.append({
+            videos.append({
                 'id': video['id'],
                 'title': video['snippet']['title'],
                 'channelTitle': video['snippet']['channelTitle'],
                 'viewCount': view_count,
-                'formattedViewCount': formatted_view_count,
+                'formattedViewCount': f"{view_count:,}",
                 'thumbnail': video['snippet']['thumbnails']['high']['url']
             })
-        
-        return jsonify({'videos': results})
-    
-    except json.JSONDecodeError as je:
-        print(f"JSON 파싱 오류: {str(je)}")
-        return jsonify({'error': 'API 응답을 처리하는 중 오류가 발생했습니다. API 키를 확인해주세요.'}), 500
+
+        # DB에서 좋아요/싫어요 카운트 가져오기
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        for v in videos:
+            cursor.execute('SELECT COUNT(*) FROM video_reactions WHERE video_id=? AND reaction="like"', (v['id'],))
+            v['likes'] = cursor.fetchone()[0]
+            cursor.execute('SELECT COUNT(*) FROM video_reactions WHERE video_id=? AND reaction="dislike"', (v['id'],))
+            v['dislikes'] = cursor.fetchone()[0]
+        conn.close()
+
+        # 정렬 (기본: 조회수순, sortByLikes가 true면 좋아요순)
+        if sort_by_likes:
+            videos.sort(key=lambda x: (x['likes'], x['viewCount']), reverse=True)
+        else:
+            videos.sort(key=lambda x: x['viewCount'], reverse=True)
+
+        return jsonify({'videos': videos})
+
     except Exception as e:
         print(f"오류 발생: {str(e)}")
         return jsonify({'error': f'추천을 가져오는 중 오류가 발생했습니다: {str(e)}'}), 500
 
-# 사용자 관련 API
+# 좋아요/싫어요 반응 API
+@app.route('/api/video/reaction', methods=['POST'])
+@login_required
+def video_reaction():
+    data = request.json
+    user_id = session['user_id']
+    video_id = data['video_id']
+    reaction = data['reaction']
+    title = data['title']
+    channel_title = data['channelTitle']
+    thumbnail = data['thumbnail']
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    # 좋아요/싫어요 취소 (이미 눌렀던 반응일 경우 삭제)
+    if data.get('cancel', False):
+        cursor.execute('DELETE FROM video_reactions WHERE user_id=? AND video_id=?', (user_id, video_id))
+        conn.commit()
+        conn.close()
+        return jsonify({'message': '반응이 취소되었습니다.'})
+    # 좋아요/싫어요 기록(갱신)
+    cursor.execute('INSERT OR REPLACE INTO video_reactions (user_id, video_id, title, channel_title, thumbnail, reaction) VALUES (?, ?, ?, ?, ?, ?)',
+        (user_id, video_id, title, channel_title, thumbnail, reaction))
+    conn.commit()
+    conn.close()
+    return jsonify({'message': f'{reaction}가 반영되었습니다.'})
+
+# 해당 비디오 좋아요/싫어요 카운트 및 사용자의 반응 조회
+@app.route('/api/video/<video_id>/reaction', methods=['GET'])
+def get_video_reaction(video_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('SELECT COUNT(*) FROM video_reactions WHERE video_id=? AND reaction="like"', (video_id,))
+    likes = cursor.fetchone()[0]
+    cursor.execute('SELECT COUNT(*) FROM video_reactions WHERE video_id=? AND reaction="dislike"', (video_id,))
+    dislikes = cursor.fetchone()[0]
+    user_reaction = None
+    if 'user_id' in session:
+        cursor.execute('SELECT reaction FROM video_reactions WHERE user_id=? AND video_id=?', (session['user_id'], video_id))
+        row = cursor.fetchone()
+        user_reaction = row[0] if row else None
+    conn.close()
+    return jsonify({'likes': likes, 'dislikes': dislikes, 'user_reaction': user_reaction})
+
+# 좋아요/싫어요 누른 노래 목록
+@app.route('/api/user/videos/<reaction>', methods=['GET'])
+@login_required
+def user_reacted_videos(reaction):
+    user_id = session['user_id']
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('SELECT video_id, title, channel_title, thumbnail FROM video_reactions WHERE user_id=? AND reaction=?', (user_id, reaction))
+    videos = [{'id': row[0], 'title': row[1], 'channelTitle': row[2], 'thumbnail': row[3]} for row in cursor.fetchall()]
+    conn.close()
+    return jsonify({'videos': videos})
+
+# (아래는 기존 회원가입/로그인/플레이리스트 관련 코드 그대로)
 @app.route('/api/auth/register', methods=['POST'])
 def register():
-    """사용자 등록"""
     data = request.json
     username = data.get('username', '').strip()
     password = data.get('password', '').strip()
-    
+
     if not username or not password:
         return jsonify({'error': '사용자 이름과 비밀번호를 모두 입력해주세요.'}), 400
-    
-    # 비밀번호 해싱
+
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
+
     try:
-        cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', 
+        cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)',
                       (username, hashed_password))
         conn.commit()
-        
-        # 새 사용자 ID 가져오기
         user_id = cursor.lastrowid
-        
-        # 세션에 사용자 정보 저장
         session['user_id'] = user_id
         session['username'] = username
-        
         return jsonify({
             'message': '회원가입이 완료되었습니다.',
             'user_id': user_id,
@@ -215,30 +285,26 @@ def register():
 
 @app.route('/api/auth/login', methods=['POST'])
 def login():
-    """사용자 로그인"""
     data = request.json
     username = data.get('username', '').strip()
     password = data.get('password', '').strip()
-    
+
     if not username or not password:
         return jsonify({'error': '사용자 이름과 비밀번호를 모두 입력해주세요.'}), 400
-    
-    # 비밀번호 해싱
+
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
+
     try:
-        cursor.execute('SELECT id, username FROM users WHERE username = ? AND password = ?', 
+        cursor.execute('SELECT id, username FROM users WHERE username = ? AND password = ?',
                       (username, hashed_password))
         user = cursor.fetchone()
-        
+
         if user:
-            # 세션에 사용자 정보 저장
             session['user_id'] = user[0]
             session['username'] = user[1]
-            
             return jsonify({
                 'message': '로그인 성공',
                 'user_id': user[0],
@@ -251,13 +317,11 @@ def login():
 
 @app.route('/api/auth/logout', methods=['POST'])
 def logout():
-    """사용자 로그아웃"""
     session.clear()
     return jsonify({'message': '로그아웃 되었습니다.'})
 
 @app.route('/api/auth/status', methods=['GET'])
 def auth_status():
-    """현재 로그인 상태 확인"""
     if 'user_id' in session:
         return jsonify({
             'logged_in': True,

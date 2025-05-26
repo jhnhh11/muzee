@@ -288,6 +288,10 @@ button:hover {
   background-color: #fff;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  min-height: 350px; 
+  display: flex;
+  flex-direction: column;
 }
 
 .playlist-item:hover {
@@ -319,6 +323,13 @@ button:hover {
   font-size: 1.1rem;
   margin-bottom: 6px;
   color: #333;
+   
+  height: 55px; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3; 
+  -webkit-box-orient: vertical;
 }
 
 .video-info p {
